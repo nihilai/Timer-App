@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600&family=Noto+Serif:wght@700&display=swap" rel="stylesheet" />
+    <title>Timer App</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      :root {
+        background-image: /*linear-gradient(rgba(255, 255, 246, 0.2), rgba(255, 254, 246, 0.1)), */ url("pics/heat.jpg");
+        background-size: cover;
+        background-attachment: fixed;
+        --button-text: rgb(255, 254, 246);
+        --window-bright: rgba(188, 205, 212, 0.2);
+        --button-bright: rgb(145, 82, 51);
+        --hover-bright: rgb(164, 93, 58);
+        --freeze: rgb(234, 160, 92);
+        --background-text: rgb(34, 31, 26);
+        --noto-serif: "Noto Serif", serif;
+        --noto-sans: "Noto Sans", sans-serif;
+      }
+      [data-theme="heat"] {
+        background-position: center 50%;
+      }
+      [data-theme="frost"] {
+        background-image: linear-gradient(rgba(223, 230, 255, 0.2), rgba(223, 230, 255, 0.3)), url("pics/frost.jpg");
+        background-size: cover;
+        background-attachment: fixed;
+        --window-bright: rgba(217, 236, 251, 0.4);
+        --button-bright: rgb(76, 119, 184);
+        --hover-bright: rgb(84, 131, 201);
+        --freeze: rgb(205, 155, 103);
+        --background-text: rgb(43, 55, 87);
+      }
+      [data-theme="forest"] {
+        background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.6)), url("pics/forest.jpg");
+        background-size: cover;
+        background-attachment: fixed;
+        --button-bright: rgb(115, 24, 21);
+        --hover-bright: rgb(128, 24, 21);
+        --freeze: rgb(47, 47, 47);
+        --background-text: rgb(246, 240, 229);
+      }
+      [data-theme="rain"] {
+        background-image: linear-gradient(rgba(128, 128, 128, 0.1), rgba(126, 126, 126, 0.1)), url("pics/rain.jpg");
+        background-size: cover;
+        background-attachment: fixed;
+        --button-bright: rgb(182, 67, 106);
+        --hover-bright: rgb(198, 73, 115);
+        --freeze: rgb(248, 190, 188);
+        --background-text: rgb(254, 241, 236);
+      }
+      [data-theme="tropical"] {
+        background-image: linear-gradient(rgba(194, 241, 237, 0.1), rgba(160, 159, 139, 0.2)), url("pics/tropical.jpg");
+        background-size: cover;
+        background-attachment: fixed;
+        --button-bright: rgb(34, 138, 190);
+        --hover-bright: rgb(38, 148, 203);
+        --freeze: rgb(123, 195, 219);
+        --background-text: rgb(255, 253, 242);
+      }
+      [data-theme="forest"] .left,
+      [data-theme="forest"] .right {
+        background: linear-gradient(0deg, rgba(227, 227, 227, 0.1), rgba(194, 194, 194, 0.1));
+      }
+      [data-theme="heat"] select {
+        color: rgb(34, 31, 26);
+      }
+      [data-theme="forest"] select {
+        color: rgb(66, 36, 27);
+        background-color: rgba(246, 240, 229, 0.9);
+      }
+      [data-theme="tropical"] select {
+        color: var(--background-text);
+        background-color: var(--button-bright);
+      }
+      body {
+        font-family: var(--noto-sans);
+        text-shadow: rgba(0, 0, 0, 0.3) 1px 1px 5px;
+        color: var(--background-text);
+        margin: 0;
+      }
+      h1 {
+        font-family: var(--noto-serif);
+        font-size: 2.5em;
+        text-align: center;
+        margin: 0;
+        padding: 20px;
+      }
+      .icon {
+        display: inline-block;
+        width: 22px;
+        height: 22px;
+        background-color: currentColor;
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        -webkit-mask-size: contain;
+        mask-repeat: no-repeat;
+        mask-position: center;
+        mask-size: contain;
+      }
+      .icon--play {
+        -webkit-mask-image: url("pics/play.svg");
+        mask-image: url("pics/play.svg");
+      }
+      .icon--pause {
+        -webkit-mask-image: url("pics/pause.svg");
+        mask-image: url("pics/pause.svg");
+      }
+      .icon--tomato {
+        -webkit-mask-image: url("pics/tomato.svg");
+        mask-image: url("pics/tomato.svg");
+      }
+      .icon--snow {
+        -webkit-mask-image: url("pics/snow-crystal.svg");
+        mask-image: url("pics/snow-crystal.svg");
+      }
+      .icon--pine {
+        -webkit-mask-image: url("pics/pine-tree.svg");
+        mask-image: url("pics/pine-tree.svg");
+      }
+      .icon--cloud {
+        -webkit-mask-image: url("pics/rainy-cloud.svg");
+        mask-image: url("pics/rainy-cloud.svg");
+      }
+      .icon--palm {
+        -webkit-mask-image: url("pics/palm-tree.svg");
+        mask-image: url("pics/palm-tree.svg");
+      }
+      .icon--sun {
+        -webkit-mask-image: url("pics/sun.svg");
+        mask-image: url("pics/sun.svg");
+      }
+      #themeToggle {
+        position: absolute;
+        top: 35px;
+        right: 52px;
+        padding: 8.5px 10px;
+        font-size: 1em;
+      }
+      #themeToggle span {
+        display: block;
+        width: 1em;
+        height: 1em;
+      }
+      #miniMode {
+        position: absolute;
+        top: 35px;
+        left: 52px;
+        padding: 8px 12px 6px 12px;
+        font-size: 1em;
+      }
+      .container {
+        display: flex;
+        height: 80vh;
+        padding: 0 50px;
+        gap: 50px;
+      }
+      .left,
+      .right {
+        flex: 1;
+        background: var(--window-bright);
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        border-radius: 16px;
+      }
+      .timer {
+        font-size: 2.5em;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+      .field {
+        display: grid;
+        grid-template-columns: 120px auto;
+        column-gap: 12px;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 10px;
+      }
+      .field-label {
+        text-align: left;
+        white-space: nowrap;
+      }
+      #timerSelect,
+      #goalSelect {
+        height: 34px;
+      }
+      select {
+        padding: 5px;
+        font-size: 1em;
+        border: none;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        background-color: rgba(255, 254, 246, 0.7);
+      }
+      *:focus {
+        outline: 2px solid var(--freeze);
+        outline-offset: -3px;
+      }
+      .buttons {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin: 10px;
+      }
+      button {
+        padding: 8px 16px;
+        font-size: 1.6em;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background: var(--button-bright);
+        color: var(--button-text);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      button:hover {
+        background: var(--hover-bright);
+        translate: 0px 1px;
+        box-shadow: none;
+      }
+      #startPauseBtn,
+      #pomodoroBtn {
+        padding: 10px 16px 6px 16px;
+      }
+      #pomodoroBtn,
+      #freezeBtn {
+        background-color: var(--freeze);
+      }
+      #pomodoroBtn.is-active {
+        color: var(--freeze);
+        background: var(--button-text);
+      }
+      #resetDayBtn,
+      #resetSessionBtn {
+        font-size: 1em;
+        padding: 14px;
+      }
+      .calendar-header {
+        font-family: var(--noto-serif);
+        font-size: 1.6em;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .calendar .today {
+        outline: 3px solid var(--freeze);
+        outline-offset: -3px;
+      }
+      #prevMonth,
+      #nextMonth,
+      #monthYear {
+        font-size: clamp(0.8em, 2vw, 1.2em);
+        padding: 0 0.6vw;
+      }
+      .calendar {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        margin: 20px auto;
+        width: clamp(220px, 80%, 520px);
+        gap: 5px;
+        text-align: center;
+        max-width: 380px;
+      }
+      .calendar .weekday {
+        font-weight: 600;
+        border: none;
+        background: transparent;
+        pointer-events: none;
+      }
+      .calendar div {
+        position: relative;
+        display: grid;
+        place-items: center;
+        padding: clamp(4px, 0.9vw, 10px);
+        font-size: clamp(12px, 1.6vw, 18px);
+        border: rgb(34, 31, 26) 1px solid;
+        line-height: 1.2;
+        border-radius: 5px;
+        aspect-ratio: 1/1;
+        max-width: 50px;
+        max-height: 50px;
+      }
+      .calendar .num-overlay {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        pointer-events: none;
+        color: var(--button-text);
+      }
+      .calendar .empty {
+        background: transparent;
+      }
+      .streaks,
+      .stats {
+        text-align: center;
+        margin-top: 10px;
+        font-size: 1.2em;
+      }
+      @media (max-width: 720px) {
+        .container {
+          flex-direction: column;
+          align-items: center;
+          height: auto;
+          padding: 10px 16px;
+          gap: 20px;
+        }
+        .left,
+        .right {
+          padding: 16px;
+          max-width: 480px;
+          min-height: 480px;
+          width: 100%;
+        }
+        .calendar {
+          width: clamp(220px, 90%, 460px);
+        }
+        #themeToggle {
+          right: calc(40vw - 180px);
+        }
+        #miniMode {
+          left: calc(40vw - 180px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Timer App</h1>
+
+    <button id="miniMode" type="button">⤡</button>
+
+    <button id="themeToggle" aria-label="Change theme">
+      <span id="themeIcon" class="icon icon--theme" aria-hidden="true"></span>
+    </button>
+
+    <div class="container">
+      <!-- Left Side -->
+      <div class="left">
+        <div id="countdown" class="timer" aria-live="polite">30:00</div>
+
+        <div id="setTimer" class="field">
+          <span class="field-label">Set timer:</span>
+          <select id="timerSelect"></select>
+        </div>
+
+        <div id="setGoal" class="field">
+          <span class="field-label">Set daily goal:</span>
+          <select id="goalSelect"></select>
+        </div>
+
+        <div class="buttons">
+          <button id="startPauseBtn" type="button">
+            <span id="startPauseIcon" class="icon icon--play" aria-hidden="true"></span>
+          </button>
+
+          <button id="pomodoroBtn" type="button">
+            <span id="pomodoroIcon" class="icon icon--tomato" aria-hidden="true"></span>
+          </button>
+
+          <button id="resetBtn" type="button">Reset</button>
+        </div>
+
+        <div class="buttons">
+          <button id="resetDayBtn" type="button">Reset Day</button>
+          <button id="resetSessionBtn" type="button">Reset Session</button>
+        </div>
+
+        <div class="stats">
+          <div>Today: <span id="todayTime">0:00:00</span></div>
+          <div>All Time: <span id="allTime">0:00:00</span></div>
+        </div>
+
+        <div class="buttons">
+          <button id="freezeBtn" type="button">Freeze</button>
+        </div>
+
+        <div class="stats">
+          <div id="freezeTxt">Freeze to not apply daily goal</div>
+          <div>Freezes left this month: <span id="freezesLeft"></span></div>
+        </div>
+      </div>
+
+      <!-- Right Side -->
+      <div class="right">
+        <div class="calendar-header">
+          <button id="prevMonth" type="button">&lt;</button>
+          <div id="monthYear"></div>
+          <button id="nextMonth" type="button">&gt;</button>
+        </div>
+        <div class="calendar" id="calendar"></div>
+        <div class="streaks">
+          <div class="workstreak">Work Streak: <span id="workStreak">0</span> days (Goal met: <span id="goalDays">0</span>)</div>
+          <div class="worktotal">Work Total: <span id="workTotal">0</span> days (Goal Total: <span id="goalTotal">0</span>)</div>
+          <div>Days over 1 hour: <span id="oneHour">0</span></div>
+          <div>Days over 2 hours: <span id="twoHour">0</span></div>
+          <div>Days over 3 hours: <span id="threeHour">0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // --- Pomodoro Logic --- //
+      const POMO_WORK = 25 * 60;
+      const POMO_BREAK = 5 * 60;
+      let pomoActive = false;
+      let pomoPhase = "work";
+
+      // --- Timer Logic --- //
+      let countdownTime = 30 * 60;
+      let countdownRemaining = countdownTime;
+      let sessionWorkedSeconds = 0;
+      let countdownInterval = null;
+      let running = false;
+
+      function formatTime(seconds) {
+        let h = Math.floor(seconds / 3600);
+        let m = Math.floor((seconds % 3600) / 60);
+        let s = seconds % 60;
+        return (h > 0 ? h + ":" : "") + String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+      }
+
+      function formatHMS(seconds) {
+        seconds = Math.max(0, Math.floor(seconds || 0));
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = seconds % 60;
+        return String(h) + ":" + String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+      }
+
+      function notify(message) {
+        if (window.api?.notify) {
+          window.api.notify({ title: "My Timer", body: message, silent: false });
+        } else {
+          if (Notification.permission !== "granted") Notification.requestPermission();
+          new Notification("My Timer", { body: message });
+        }
+
+        const audio = new Audio("./assets/alarm.wav");
+        audio.play().catch(() => {});
+      }
+
+      if (typeof Notification !== "undefined" && Notification.permission === "default") {
+        Notification.requestPermission().catch(() => {});
+      }
+
+      function goalNotifiedKeyFromDate(d) {
+        return "goalNotified:" + dateKeyFromDate(d);
+      }
+      function isGoalNotifiedForDate(d) {
+        return localStorage.getItem(goalNotifiedKeyFromDate(d)) === "1";
+      }
+      function markGoalNotifiedForDate(d) {
+        localStorage.setItem(goalNotifiedKeyFromDate(d), "1");
+      }
+
+      function pad2(n) {
+        return String(n).padStart(2, "0");
+      }
+      function dateKeyFromDate(d) {
+        return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+      }
+      function todayKeyLocal() {
+        return dateKeyFromDate(new Date());
+      }
+      function dateKey(y, mZeroBased, d) {
+        return `${y}-${pad2(mZeroBased + 1)}-${pad2(d)}`;
+      }
+
+      function setTimerSeconds(totalSeconds) {
+        countdownTime = totalSeconds;
+        countdownRemaining = totalSeconds;
+        updateDisplay();
+      }
+
+      function startPomodoro() {
+        sessionWorkedSeconds = 0;
+        pomoActive = true;
+        pomoPhase = "work";
+        setTimerSeconds(POMO_WORK);
+        setPomodoroActiveUI(true);
+
+        if (!running) document.getElementById("startPauseBtn").click();
+      }
+
+      if (window.api && typeof window.api.onStartPomodoro === "function") {
+        window.api.onStartPomodoro?.(() => {
+          startPomodoro();
+          setPomodoroLock(true);
+        });
+      }
+
+      function setPomodoroLock(locked) {
+        timerSelect.disabled = locked;
+        document.getElementById("pomodoroBtn").disabled = locked;
+      }
+
+      function setDayFrozen(dateObj, frozenBool) {
+        const key = "frozen:" + dateKeyFromDate(dateObj);
+        if (frozenBool) {
+          localStorage.setItem(key, "1");
+        } else {
+          localStorage.removeItem(key);
+        }
+      }
+
+      function isDayFrozen(dateKeyStr) {
+        return localStorage.getItem("frozen:" + dateKeyStr) === "1";
+      }
+
+      const maxFreezesPerMonth = 5;
+
+      function countFrozen(dateObj) {
+        const year = dateObj.getFullYear();
+        const month = dateObj.getMonth();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        let count = 0;
+
+        for (let d = 1; d <= daysInMonth; d++) {
+          const key = dateKey(year, month, d);
+          if (isDayFrozen(key)) {
+            count++;
+          }
+        }
+        return count;
+      }
+
+      function updateFreezesLeft() {
+        const freezeSpan = document.getElementById("freezesLeft");
+        if (!freezeSpan) return;
+
+        const today = new Date();
+        const used = countFrozen(today);
+        const left = Math.max(0, maxFreezesPerMonth - used);
+        freezeSpan.textContent = String(left);
+      }
+
+      // --- Core state backed by localStorage --- //
+      let todaySeconds = parseInt(localStorage.getItem("worked:" + todayKeyLocal())) || 0;
+      let allTimeSeconds = parseInt(localStorage.getItem("allTimeSeconds")) || 0;
+
+      function updateDisplay() {
+        document.getElementById("countdown").textContent = formatTime(countdownRemaining);
+        document.getElementById("todayTime").textContent = formatHMS(todaySeconds);
+        document.getElementById("allTime").textContent = formatHMS(allTimeSeconds);
+
+        if (window.api?.sendCurrentTime) {
+          window.api.sendCurrentTime(formatHMS(countdownRemaining), running, pomoActive);
+        }
+      }
+
+      // --- Theme toggle --- //
+      const btn = document.getElementById("themeToggle");
+      const themeIcon = document.getElementById("themeIcon");
+      const themeIconClasses = {
+        heat: "icon--snow",
+        frost: "icon--pine",
+        forest: "icon--cloud",
+        rain: "icon--palm",
+        tropical: "icon--sun",
+      };
+
+      function applyTheme(theme) {
+        document.documentElement.dataset.theme = theme;
+
+        Object.values(themeIconClasses).forEach((cls) => themeIcon.classList.remove(cls));
+
+        themeIcon.classList.add(themeIconClasses[theme]);
+      }
+
+      const savedTheme = localStorage.getItem("theme") || "heat";
+      applyTheme(savedTheme);
+
+      const themes = ["heat", "frost", "forest", "rain", "tropical"];
+
+      btn.addEventListener("click", () => {
+        const current = document.documentElement.getAttribute("data-theme") || "heat";
+        const next = themes[(themes.indexOf(current) + 1) % themes.length];
+        applyTheme(next);
+        localStorage.setItem("theme", next);
+
+        renderCalendar(currentDate);
+        updateCalendarProgress();
+      });
+
+      function preloadImages() {
+        themes.forEach((theme) => {
+          const img = new Image();
+          img.src = `pics/${theme}.jpg`;
+        });
+      }
+
+      // --- Mini mode --- //
+      const miniBtn = document.getElementById("miniMode");
+      if (miniBtn && window.api?.toggleMiniMode) {
+        miniBtn.addEventListener("click", () => {
+          window.api.toggleMiniMode();
+        });
+      }
+
+      window.api?.onPlayPause(() => {
+        document.getElementById("startPauseBtn").click();
+      });
+
+      const startPauseIcon = document.getElementById("startPauseIcon");
+
+      // --- Goal snapshot & locking --- //
+      const goalSelect = document.getElementById("goalSelect");
+      let dailyGoalSeconds = 0;
+
+      function getLastUsedGoal() {
+        return parseInt(localStorage.getItem("goal:lastUsed")) || 60 * 60;
+      }
+      function getTodayGoalLocked() {
+        return localStorage.getItem("goalLocked:" + todayKeyLocal()) === "1";
+      }
+      function setTodayGoalLocked(locked) {
+        localStorage.setItem("goalLocked:" + todayKeyLocal(), locked ? "1" : "0");
+      }
+      function ensureTodayGoalSnapshot() {
+        const key = "goal:" + todayKeyLocal();
+        let stored = localStorage.getItem(key);
+        if (!stored) {
+          // Snapshot current default as today's goal
+          const def = getLastUsedGoal();
+          localStorage.setItem(key, def);
+          setTodayGoalLocked(false); // allow one change today
+          stored = String(def);
+        }
+        dailyGoalSeconds = parseInt(stored, 10);
+        goalSelect.value = String(dailyGoalSeconds);
+        if (goalSelect.value !== String(dailyGoalSeconds)) {
+          goalSelect.value = String(60 * 60);
+        }
+        goalSelect.disabled = getTodayGoalLocked();
+      }
+
+      // Initialize goal choices
+      for (let half = 30; half <= 360; half += 30) {
+        const option = document.createElement("option");
+        option.value = half * 60;
+        let h = Math.floor(half / 60);
+        let m = half % 60;
+        option.textContent = (h > 0 ? String(h).padStart(2, "0") + ":" : "00:") + String(m).padStart(2, "0");
+        goalSelect.appendChild(option);
+      }
+      ensureTodayGoalSnapshot();
+      let lastGoalSeconds = dailyGoalSeconds;
+
+      goalSelect.addEventListener("change", () => {
+        const chosen = parseInt(goalSelect.value, 10);
+        const pretty = formatHMS(chosen);
+        if (confirm(`Set today's goal to ${pretty}? You can't change it again today.`)) {
+          dailyGoalSeconds = chosen;
+          localStorage.setItem("goal:" + todayKeyLocal(), String(chosen));
+          localStorage.setItem("goal:lastUsed", String(chosen));
+          setTodayGoalLocked(true);
+          goalSelect.disabled = true;
+          lastGoalSeconds = chosen;
+          updateCalendarProgress();
+          computeAndRenderStreaks();
+        } else {
+          goalSelect.value = lastGoalSeconds;
+        }
+      });
+
+      // --- Timer select --- //
+      const timerSelect = document.getElementById("timerSelect");
+      for (let five = 5; five <= 60; five += 5) {
+        const option = document.createElement("option");
+        option.value = five * 60;
+        let h = Math.floor(five / 60);
+        let m = five % 60;
+        option.textContent = (h > 0 ? String(h).padStart(2, "0") + ":" : "00:") + String(m).padStart(2, "0");
+        timerSelect.appendChild(option);
+      }
+
+      timerSelect.value = 30 * 60;
+      countdownTime = parseInt(timerSelect.value, 10);
+      countdownRemaining = countdownTime;
+
+      timerSelect.addEventListener("change", () => {
+        const newTotal = parseInt(timerSelect.value, 10);
+        const oldTotal = countdownTime;
+        countdownTime = newTotal;
+
+        const elapsed = Math.max(0, oldTotal - countdownRemaining);
+        countdownRemaining = Math.max(0, newTotal - elapsed);
+
+        updateDisplay();
+      });
+
+      if (window.api?.onRequestCurrentTime) {
+        window.api.onRequestCurrentTime(() => {
+          const time = formatHMS(countdownRemaining);
+          window.api.sendCurrentTime(time, running);
+        });
+      }
+
+      // --- Day rollover handling --- //
+      let currentDay = new Date().toDateString();
+
+      (function midnightReload() {
+        const now = new Date();
+        const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0) - now;
+        setTimeout(() => {
+          location.reload();
+        }, msUntilMidnight + 2000);
+      })();
+
+      let lastTickTime = Date.now();
+
+      function onNewDayStart() {
+        localStorage.removeItem(goalNotifiedKeyFromDate(new Date()));
+        todaySeconds = parseInt(localStorage.getItem("worked:" + todayKeyLocal())) || 0;
+        countdownRemaining = countdownTime;
+        clearInterval(countdownInterval);
+        running = false;
+        startPauseIcon.classList.remove("icon--pause");
+        startPauseIcon.classList.add("icon--play");
+        pomoActive = false;
+        pomoPhase = "work";
+        setPomodoroLock(false);
+
+        ensureTodayGoalSnapshot();
+        lastGoalSeconds = dailyGoalSeconds;
+
+        renderCalendar(currentDate);
+        updateCalendarProgress();
+        updateFreezesLeft();
+      }
+
+      function tick() {
+        if (!running) {
+          lastTickTime = Date.now();
+          return;
+        }
+        const now = Date.now();
+        const elapsed = Math.floor((now - lastTickTime) / 1000);
+        lastTickTime = now;
+        const step = Math.max(1, elapsed);
+
+        const prev = new Date(now - step * 1000);
+        const curr = new Date(now);
+        const crossedMidnight = prev.toDateString() !== curr.toDateString();
+
+        if (crossedMidnight) {
+          const endOfPrev = new Date(prev);
+          endOfPrev.setHours(24, 0, 0, 0);
+          const beforeMidnight = Math.max(0, Math.floor((endOfPrev - prev) / 1000));
+
+          const prevKey = dateKeyFromDate(prev);
+          const wasFrozen = isDayFrozen(prevKey);
+          setDayFrozen(prev, wasFrozen);
+          const prevWorked = parseInt(localStorage.getItem("worked:" + prevKey)) || 0;
+          localStorage.setItem("worked:" + prevKey, prevWorked + beforeMidnight);
+
+          allTimeSeconds += beforeMidnight;
+          localStorage.setItem("allTimeSeconds", allTimeSeconds);
+
+          currentDay = curr.toDateString();
+          onNewDayStart();
+          todaySeconds = parseInt(localStorage.getItem("worked:" + dateKeyFromDate(curr)), 10) || 0;
+
+          updateDisplay();
+          updateCalendarProgress();
+          computeAndRenderStreaks();
+          return;
+        }
+
+        const remBefore = countdownRemaining;
+        const workedThisTick = Math.min(step, remBefore);
+        countdownRemaining = Math.max(0, remBefore - step);
+        const prevTodaySeconds = todaySeconds;
+
+        if (workedThisTick > 0) {
+          todaySeconds += workedThisTick;
+
+          const todayKey = dateKeyFromDate(curr);
+          const storedToday = parseInt(localStorage.getItem("worked:" + todayKey), 10) || 0;
+          localStorage.setItem("worked:" + todayKey, storedToday + workedThisTick);
+
+          allTimeSeconds += workedThisTick;
+          localStorage.setItem("allTimeSeconds", allTimeSeconds);
+
+          sessionWorkedSeconds += workedThisTick;
+        }
+
+        const todayKey = dateKeyFromDate(curr);
+        const todaysGoal = parseInt(localStorage.getItem("goal:" + todayKey), 10) || 0;
+
+        const goalJustReached = todaysGoal > 0 && !isGoalNotifiedForDate(curr) && prevTodaySeconds < todaysGoal && todaySeconds >= todaysGoal;
+
+        if (goalJustReached) {
+          notify(`Daily goal reached: ${formatHMS(todaysGoal)} 🎉`);
+          markGoalNotifiedForDate(curr);
+        }
+
+        if (countdownRemaining === 0 && remBefore > 0) {
+          if (pomoActive) {
+            if (pomoPhase === "work") {
+              if (!goalJustReached) notify("Pomodoro work session complete! Time for a break.");
+              pomoPhase = "break";
+              setTimerSeconds(POMO_BREAK);
+              lastTickTime = Date.now();
+            } else {
+              if (!goalJustReached) notify("Pomodoro break over! Start another one?");
+              pomoActive = false;
+              pomoPhase = "work";
+              clearInterval(countdownInterval);
+              running = false;
+              setTimerSeconds(POMO_WORK);
+              startPauseIcon.classList.remove("icon--pause");
+              startPauseIcon.classList.add("icon--play");
+              sessionWorkedSeconds = 0;
+              setPomodoroLock(false);
+              setPomodoroActiveUI(false);
+            }
+          } else {
+            if (!goalJustReached) notify("Session complete! Want to start another?");
+            clearInterval(countdownInterval);
+            countdownRemaining = countdownTime;
+            running = false;
+            startPauseIcon.classList.remove("icon--pause");
+            startPauseIcon.classList.add("icon--play");
+            sessionWorkedSeconds = 0;
+          }
+        }
+
+        updateDisplay();
+        updateCalendarProgress();
+        computeAndRenderStreaks();
+      }
+
+      function refreshUI() {
+        updateDisplay();
+        updateCalendarProgress();
+        computeAndRenderStreaks();
+      }
+
+      window.addEventListener("visibilitychange", () => {
+        if (!document.hidden) running ? tick() : refreshUI();
+      });
+      window.addEventListener("focus", () => {
+        running ? tick() : refreshUI();
+      });
+
+      document.getElementById("startPauseBtn").addEventListener("click", () => {
+        if (!running) {
+          if (countdownRemaining <= 0) {
+            countdownRemaining = countdownTime;
+            updateDisplay();
+          }
+          lastTickTime = Date.now();
+          countdownInterval = setInterval(tick, 1000);
+          running = true;
+          startPauseIcon.classList.remove("icon--play");
+          startPauseIcon.classList.add("icon--pause");
+        } else {
+          clearInterval(countdownInterval);
+          running = false;
+          lastTickTime = Date.now();
+          startPauseIcon.classList.remove("icon--pause");
+          startPauseIcon.classList.add("icon--play");
+          window.api?.updateTime?.(formatHMS(countdownRemaining));
+        }
+        updateDisplay();
+      });
+
+      document.getElementById("pomodoroBtn").addEventListener("click", () => {
+        startPomodoro();
+        setPomodoroLock(true);
+      });
+
+      const pomodoroBtn = document.getElementById("pomodoroBtn");
+
+      function setPomodoroActiveUI(active) {
+        pomodoroBtn.classList.toggle("is-active", !!active);
+      }
+
+      document.getElementById("resetBtn").addEventListener("click", () => {
+        pomoActive = false;
+        pomoPhase = "work";
+        clearInterval(countdownInterval);
+        countdownRemaining = countdownTime;
+        running = false;
+        startPauseIcon.classList.remove("icon--pause");
+        startPauseIcon.classList.add("icon--play");
+        setPomodoroLock(false);
+        setPomodoroActiveUI(false);
+        updateDisplay();
+      });
+
+      document.getElementById("resetDayBtn").addEventListener("click", () => {
+        if (!confirm("Reset today? This cannot be undone.")) return;
+        const key = todayKeyLocal();
+        const workedToday = parseInt(localStorage.getItem("worked:" + key), 10) || todaySeconds || 0;
+
+        const storedAll = parseInt(localStorage.getItem("allTimeSeconds"), 10) || 0;
+        const newAll = Math.max(0, storedAll - workedToday);
+        localStorage.setItem("allTimeSeconds", newAll);
+        allTimeSeconds = newAll;
+
+        todaySeconds = 0;
+        localStorage.setItem("worked:" + key, "0");
+
+        countdownRemaining = countdownTime;
+        clearInterval(countdownInterval);
+        running = false;
+
+        startPauseIcon.classList.remove("icon--pause");
+        startPauseIcon.classList.add("icon--play");
+        pomoActive = false;
+        pomoPhase = "work";
+        sessionWorkedSeconds = 0;
+        setPomodoroLock(false);
+        setPomodoroActiveUI(false);
+        updateDisplay();
+        updateCalendarProgress();
+        computeAndRenderStreaks();
+      });
+
+      document.getElementById("resetSessionBtn").addEventListener("click", () => {
+        if (!confirm("Reset session? This cannot be undone.")) return;
+
+        const rollback = Math.max(0, sessionWorkedSeconds);
+        if (rollback > 0) {
+          const key = todayKeyLocal();
+
+          const storedToday = parseInt(localStorage.getItem("worked:" + key), 10) || 0;
+          const newTodayStored = Math.max(0, storedToday - rollback);
+          localStorage.setItem("worked:" + key, String(newTodayStored));
+          todaySeconds = Math.max(0, todaySeconds - rollback);
+
+          const storedAll = parseInt(localStorage.getItem("allTimeSeconds"), 10) || 0;
+          const newAll = Math.max(0, storedAll - rollback);
+          localStorage.setItem("allTimeSeconds", String(newAll));
+          allTimeSeconds = newAll;
+        }
+
+        pomoActive = false;
+        pomoPhase = "work";
+        setPomodoroLock(false);
+
+        sessionWorkedSeconds = 0;
+        clearInterval(countdownInterval);
+        countdownRemaining = countdownTime;
+        running = false;
+        startPauseIcon.classList.remove("icon--pause");
+        startPauseIcon.classList.add("icon--play");
+
+        setPomodoroLock(false);
+        setPomodoroActiveUI(false);
+        updateDisplay();
+        updateCalendarProgress();
+        computeAndRenderStreaks();
+      });
+
+      document.getElementById("freezeBtn").addEventListener("click", () => {
+        const freezeBtn = document.getElementById("freezeBtn");
+        const freezeTxt = document.getElementById("freezeTxt");
+        const goalSelect = document.getElementById("goalSelect");
+        const todayKey = todayKeyLocal();
+        const frozenToday = isDayFrozen(todayKey);
+
+        if (frozenToday) {
+          setDayFrozen(new Date(), false);
+          freezeBtn.textContent = "Freeze";
+          freezeTxt.textContent = "Freeze to not apply daily goal";
+          freezeBtn.style.color = "var(--button-text)";
+          freezeBtn.style.background = "var(--freeze)";
+          goalSelect.disabled = getTodayGoalLocked();
+        } else {
+          const usedThisMonth = countFrozen(new Date());
+
+          if (usedThisMonth >= maxFreezesPerMonth) {
+            alert("No freezes left this month!");
+            return;
+          }
+
+          setDayFrozen(new Date(), true);
+          freezeBtn.textContent = "Unfreeze";
+          freezeTxt.textContent = "Unfreeze to apply daily goal";
+          freezeBtn.style.color = "var(--freeze)";
+          freezeBtn.style.background = "var(--button-text)";
+          goalSelect.disabled = true;
+        }
+
+        updateFreezesLeft();
+        updateCalendarProgress();
+        renderCalendar(currentDate);
+      });
+
+      // --- Calendar Logic --- //
+      const monthYear = document.getElementById("monthYear");
+      const calendar = document.getElementById("calendar");
+      let currentDate = new Date();
+
+      function renderCalendar(date) {
+        calendar.innerHTML = "";
+        let year = date.getFullYear();
+        let month = date.getMonth();
+
+        monthYear.textContent = date.toLocaleString("default", { month: "long", year: "numeric" });
+
+        const weekdays = ["M", "T", "O", "T", "F", "L", "S"];
+        weekdays.forEach((wd) => {
+          const div = document.createElement("div");
+          div.className = "weekday";
+          div.textContent = wd;
+          calendar.appendChild(div);
+        });
+
+        const sundayFirst = new Date(year, month, 1).getDay();
+        const mondayFirst = (sundayFirst + 6) % 7;
+        let daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        for (let i = 0; i < mondayFirst; i++) {
+          let div = document.createElement("div");
+          div.classList.add("empty");
+          calendar.appendChild(div);
+        }
+
+        for (let d = 1; d <= daysInMonth; d++) {
+          let div = document.createElement("div");
+          const key = dateKey(year, month, d);
+          const today = new Date();
+          const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+
+          if (isToday) {
+            div.classList.add("today");
+            div.innerHTML = `
+              <span class="num-base">${d}</span>
+              <span class="num-overlay">${d}</span>
+            `;
+          } else {
+            div.textContent = d;
+          }
+
+          const worked = parseInt(localStorage.getItem("worked:" + key)) || 0;
+          const goal = getGoalForDateKey(key);
+          const frozen = isDayFrozen(key);
+
+          if (frozen) {
+            div.title = `Frozen day • Worked: ${formatHMS(worked)} (Goal ignored)`;
+          } else {
+            div.title = goal > 0 ? `Worked: ${formatHMS(worked)} • Goal: ${formatHMS(goal)}` : `Worked: ${formatHMS(worked)}`;
+          }
+
+          if (frozen) {
+            const currentTheme = document.documentElement.getAttribute("data-theme");
+            if (currentTheme === "forest") {
+              div.style.background = "var(--background-text)";
+              div.style.color = "var(--freeze)";
+            } else if (currentTheme === "rain") {
+              div.style.background = "var(--freeze)";
+              div.style.color = "var(--button-bright)";
+            } else {
+              div.style.background = "var(--freeze)";
+              div.style.color = "var(--button-text)";
+            }
+          } else if (goal > 0) {
+            const progress = Math.min(worked / goal, 1);
+            const pct = Math.round(progress * 100);
+
+            div.style.background = `linear-gradient(to right, var(--button-bright) ${pct}%, transparent ${pct}%)`; //
+            div.style.color = progress > 0.5 ? "var(--button-text)" : "inherit";
+          }
+
+          calendar.appendChild(div);
+        }
+      }
+
+      function updateCalendarProgress() {
+        const cell = document.querySelector(".calendar .today");
+        if (!cell) return;
+
+        const todayKey = todayKeyLocal();
+
+        if (isDayFrozen(todayKey)) {
+          cell.title = `Frozen day • Worked: ${formatHMS(todaySeconds)} (Goal ignored)`;
+          return;
+        }
+
+        if (!dailyGoalSeconds) return;
+
+        const progress = Math.min(todaySeconds / dailyGoalSeconds, 1);
+        const pct = Math.round(progress * 100);
+        cell.style.background = `linear-gradient(to right, var(--button-bright) ${pct}%, transparent ${pct}%)`;
+
+        const overlay = cell.querySelector(".num-overlay");
+        if (overlay) {
+          overlay.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+        }
+
+        cell.title = `Worked: ${formatHMS(todaySeconds)} • Goal: ${formatHMS(dailyGoalSeconds)}`;
+      }
+
+      // --- Streaks --- //
+      const workStreakEl = document.getElementById("workStreak");
+      const goalDaysEl = document.getElementById("goalDays");
+      const workTotalEl = document.getElementById("workTotal");
+      const goalTotalEl = document.getElementById("goalTotal");
+
+      function addDays(date, delta) {
+        const d = new Date(date);
+        d.setDate(d.getDate() + delta);
+        return d;
+      }
+
+      function getGoalForDateKey(dateKey) {
+        const g = parseInt(localStorage.getItem("goal:" + dateKey)) || 0;
+        return g > 0 ? g : getLastUsedGoal();
+      }
+
+      function computeStreak(conditionFn, includeToday = true) {
+        let streak = 0;
+        let cursor = includeToday ? new Date() : addDays(new Date(), -1);
+
+        while (true) {
+          const key = dateKeyFromDate(cursor);
+          const worked = parseInt(localStorage.getItem("worked:" + key)) || 0;
+          const goal = getGoalForDateKey(key);
+
+          if (isDayFrozen(key)) {
+            cursor = addDays(cursor, -1);
+            continue;
+          }
+
+          if (!conditionFn({ worked, goal })) break;
+
+          streak++;
+          cursor = addDays(cursor, -1);
+        }
+        return streak;
+      }
+
+      function computeWorkTotal() {
+        let count = 0;
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key.startsWith("worked:")) {
+            const dateKey = key.slice("worked:".length);
+            const worked = parseInt(localStorage.getItem(key), 10) || 0;
+            if (worked >= 15 * 60) {
+              count++;
+            }
+          }
+        }
+        return count;
+      }
+
+      function computeGoalTotal() {
+        let count = 0;
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key.startsWith("worked:")) {
+            const dateKey = key.slice("worked:".length);
+            const worked = parseInt(localStorage.getItem(key)) || 0;
+            const goal = getGoalForDateKey(dateKey);
+            if (goal > 0 && worked >= goal) {
+              count++;
+            }
+          }
+        }
+        return count;
+      }
+
+      function computeWorkAndGoalDays(includeToday = true) {
+        let streakLength = 0;
+        let goalDays = 0;
+        let cursor = includeToday ? new Date() : addDays(new Date(), -1);
+
+        while (true) {
+          const key = dateKeyFromDate(cursor);
+          const worked = parseInt(localStorage.getItem("worked:" + key)) || 0;
+          const goal = getGoalForDateKey(key);
+
+          if (isDayFrozen(key)) {
+            cursor = addDays(cursor, -1);
+            continue;
+          }
+
+          if (worked < 15 * 60) break;
+
+          streakLength++;
+          if (goal > 0 && worked >= goal) goalDays++;
+          cursor = addDays(cursor, -1);
+        }
+        return { streakLength, goalDays };
+      }
+
+      function computeHoursWorked(hours) {
+        const threshold = hours * 3600;
+        let count = 0;
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key.startsWith("worked:")) {
+            const worked = parseInt(localStorage.getItem(key), 10) || 0;
+            if (worked >= threshold) count++;
+          }
+        }
+        return count;
+      }
+
+      function computeAndRenderStreaks() {
+        const todayKey = todayKeyLocal();
+        const todayWorked = parseInt(localStorage.getItem("worked:" + todayKey)) || 0;
+        const todayGoal = getGoalForDateKey(todayKey);
+
+        const includeTodayForWork = todayWorked >= 15 * 60;
+
+        const workStreak = computeStreak(({ worked }) => worked >= 15 * 60, includeTodayForWork);
+        const { goalDays } = computeWorkAndGoalDays(includeTodayForWork);
+        const goalTotal = computeGoalTotal();
+        const workTotal = computeWorkTotal();
+        const oneHour = computeHoursWorked(1);
+        const twoHour = computeHoursWorked(2);
+        const threeHour = computeHoursWorked(3);
+
+        workStreakEl.textContent = workStreak;
+        goalDaysEl.textContent = goalDays;
+        workTotalEl.textContent = workTotal;
+        goalTotalEl.textContent = goalTotal;
+        document.getElementById("oneHour").textContent = oneHour;
+        document.getElementById("twoHour").textContent = twoHour;
+        document.getElementById("threeHour").textContent = threeHour;
+      }
+
+      document.getElementById("prevMonth").addEventListener("click", () => {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar(currentDate);
+        updateCalendarProgress();
+        computeAndRenderStreaks();
+      });
+
+      document.getElementById("nextMonth").addEventListener("click", () => {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar(currentDate);
+        updateCalendarProgress();
+        computeAndRenderStreaks();
+      });
+
+      // Initial render
+      updateDisplay();
+      renderCalendar(currentDate);
+      updateCalendarProgress();
+      computeAndRenderStreaks();
+      preloadImages();
+
+      (function initFreezeUI() {
+        const todayKey = todayKeyLocal();
+        const freezeBtn = document.getElementById("freezeBtn");
+        const freezeTxt = document.getElementById("freezeTxt");
+        const goalSelect = document.getElementById("goalSelect");
+
+        // Kun dagens "frozen:"-status bestemmer hva som gjelder
+        const persistedToday = isDayFrozen(todayKey);
+        const usedThisMonth = countFrozen(new Date());
+        const canFreezeToday = usedThisMonth < maxFreezesPerMonth;
+
+        let frozenToday = persistedToday;
+
+        if (frozenToday) {
+          freezeBtn.textContent = "Unfreeze";
+          freezeTxt.textContent = "Unfreeze to apply daily goal";
+          freezeBtn.style.color = "var(--freeze)";
+          freezeBtn.style.background = "var(--button-text)";
+          goalSelect.disabled = true;
+        } else {
+          freezeBtn.textContent = "Freeze";
+          freezeTxt.textContent = "Freeze to not apply daily goal";
+          freezeBtn.style.color = "var(--button-text)";
+          freezeBtn.style.background = "var(--freeze)";
+          goalSelect.disabled = getTodayGoalLocked();
+        }
+
+        // Disse må fyres ETTER freeze-status er fikset
+        updateFreezesLeft();
+        renderCalendar(currentDate);
+        updateCalendarProgress();
+        computeAndRenderStreaks();
+      })();
+    </script>
+  </body>
+</html>
