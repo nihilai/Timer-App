@@ -28,14 +28,13 @@
         background-position: center 50%;
       }
       [data-theme="frost"] {
-        background-image: linear-gradient(rgba(223, 230, 255, 0.2), rgba(223, 230, 255, 0.3)), url("pics/frost.jpg");
+        background-image: linear-gradient(rgba(223, 241, 255, 0.2), rgba(223, 230, 255, 0.3)), url("pics/frost2.jpg");
         background-size: cover;
         background-attachment: fixed;
-        --window-bright: rgba(217, 236, 251, 0.4);
-        --button-bright: rgb(76, 119, 184);
-        --hover-bright: rgb(84, 131, 201);
-        --freeze: rgb(205, 155, 103);
-        --background-text: rgb(43, 55, 87);
+        --button-bright: rgba(94, 147, 174, 0.7);
+        --hover-bright: rgba(103, 161, 191, 0.7);
+        --freeze: rgb(92, 129, 146);
+        --background-text: rgba(24, 38, 45, 0.7);
       }
       [data-theme="forest"] {
         background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.6)), url("pics/forest.jpg");
@@ -89,7 +88,7 @@
         font-family: var(--noto-serif);
         font-size: 2.5em;
         text-align: center;
-        margin: 0;
+        margin: -10px 0 0 0;
         padding: 20px;
       }
       .icon {
@@ -111,6 +110,18 @@
       .icon--pause {
         -webkit-mask-image: url("pics/pause.svg");
         mask-image: url("pics/pause.svg");
+      }
+      .icon--audio {
+        -webkit-mask-image: url("pics/sound.svg");
+        mask-image: url("pics/sound.svg");
+      }
+      .icon--mute {
+        -webkit-mask-image: url("pics/mute.svg");
+        mask-image: url("pics/mute.svg");
+      }
+      .icon--mini {
+        -webkit-mask-image: url("pics/minimize.svg");
+        mask-image: url("pics/minimize.svg");
       }
       .icon--tomato {
         -webkit-mask-image: url("pics/tomato.svg");
@@ -136,25 +147,7 @@
         -webkit-mask-image: url("pics/sun.svg");
         mask-image: url("pics/sun.svg");
       }
-      #themeToggle {
-        position: absolute;
-        top: 35px;
-        right: 52px;
-        padding: 8.5px 10px;
-        font-size: 1em;
-      }
-      #themeToggle span {
-        display: block;
-        width: 1em;
-        height: 1em;
-      }
-      #miniMode {
-        position: absolute;
-        top: 35px;
-        left: 52px;
-        padding: 8px 12px 6px 12px;
-        font-size: 1em;
-      }
+
       .container {
         display: flex;
         height: 80vh;
@@ -210,6 +203,12 @@
         gap: 10px;
         margin: 10px;
       }
+      .toggleButtons {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin: 20px 10px;
+      }
       button {
         padding: 8px 16px;
         font-size: 1.6em;
@@ -226,7 +225,10 @@
         box-shadow: none;
       }
       #startPauseBtn,
-      #pomodoroBtn {
+      #pomodoroBtn,
+      #miniMode,
+      #audioToggle,
+      #themeToggle {
         padding: 10px 16px 6px 16px;
       }
       #pomodoroBtn,
@@ -323,23 +325,11 @@
         .calendar {
           width: clamp(220px, 90%, 460px);
         }
-        #themeToggle {
-          right: calc(40vw - 180px);
-        }
-        #miniMode {
-          left: calc(40vw - 180px);
-        }
       }
     </style>
   </head>
   <body>
-    <h1>Timer App</h1>
-
-    <button id="miniMode" type="button">⤡</button>
-
-    <button id="themeToggle" aria-label="Change theme">
-      <span id="themeIcon" class="icon icon--theme" aria-hidden="true"></span>
-    </button>
+    <h1>Nihilai's Timer App</h1>
 
     <div class="container">
       <!-- Left Side -->
@@ -386,6 +376,17 @@
           <div id="freezeTxt">Freeze to not apply daily goal</div>
           <div>Freezes left this month: <span id="freezesLeft"></span></div>
         </div>
+        <div class="toggleButtons">
+          <button id="miniMode" aria-label="Change miniMode">
+            <span id="miniIcon" class="icon icon--mini" aria-hidden="true"></span>
+          </button>
+          <button id="audioToggle" aria-label="Change audio setting">
+            <span id="audioIcon" class="icon icon--audio" aria-hidden="true"></span>
+          </button>
+          <button id="themeToggle" aria-label="Change theme">
+            <span id="themeIcon" class="icon icon--theme" aria-hidden="true"></span>
+          </button>
+        </div>
       </div>
 
       <!-- Right Side -->
@@ -407,7 +408,25 @@
     </div>
 
     <script>
+      // --- Audio setup --- //
       const audio = new Audio("./pling.wav");
+      const audioIcon = document.getElementById("audioIcon");
+
+      audio.volume = 0.5;
+      audio.muted = localStorage.getItem("audioMuted") === "1";
+
+      audioIcon.classList.toggle("icon--mute", audio.muted);
+      audioIcon.classList.toggle("icon--audio", !audio.muted);
+
+      document.getElementById("audioToggle").addEventListener("click", () => {
+        audio.muted = !audio.muted;
+
+        audioIcon.classList.toggle("icon--mute", audio.muted);
+        audioIcon.classList.toggle("icon--audio", !audio.muted);
+
+        localStorage.setItem("audioMuted", audio.muted ? "1" : "0");
+      });
+
       // --- Pomodoro Logic --- //
       const POMO_WORK = 25 * 60;
       const POMO_BREAK = 5 * 60;
@@ -438,7 +457,7 @@
 
       function notify(message) {
         if (window.api?.notify) {
-          window.api.notify({ title: "My Timer", body: message, silent: false });
+          window.api.notify({ title: "My Timer", body: message, silent: true });
         } else {
           if (Notification.permission !== "granted") Notification.requestPermission();
           new Notification("My Timer", { body: message });
@@ -807,13 +826,11 @@
           if (pomoActive) {
             if (pomoPhase === "work") {
               if (!goalJustReached) notify("Pomodoro work session complete! Time for a break.");
-              audio.play().catch(() => {});
               pomoPhase = "break";
               setTimerSeconds(POMO_BREAK);
               lastTickTime = Date.now();
             } else {
               if (!goalJustReached) notify("Pomodoro break over! Start another one?");
-              audio.play().catch(() => {});
               pomoActive = false;
               pomoPhase = "work";
               clearInterval(countdownInterval);
@@ -827,7 +844,6 @@
             }
           } else {
             if (!goalJustReached) notify("Session complete! Want to start another?");
-            audio.play().catch(() => {});
             clearInterval(countdownInterval);
             countdownRemaining = countdownTime;
             running = false;

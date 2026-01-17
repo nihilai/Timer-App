@@ -84,10 +84,9 @@
         -webkit-mask-image: url("pics/tomato.svg");
         mask-image: url("pics/tomato.svg");
       }
-      #restoreBtn {
-        font-size: 12px;
-        line-height: 1;
-        padding: 4px 6px 3px;
+      .icon--expand {
+        -webkit-mask-image: url("pics/expand.svg");
+        mask-image: url("pics/expand.svg");
       }
     </style>
   </head>
@@ -103,7 +102,9 @@
         <button id="pomodoroBtn" type="button" aria-label="Start Pomodoro">
           <span id="pomodoroIcon" class="icon icon--tomato" aria-hidden="true"></span>
         </button>
-        <button id="restoreBtn" type="button" aria-label="Restore">⤢</button>
+        <button id="restoreBtn" type="button" aria-label="Change miniMode">
+          <span id="miniIcon" class="icon icon--expand" aria-hidden="true"></span>
+        </button>
       </div>
     </div>
     <script>
